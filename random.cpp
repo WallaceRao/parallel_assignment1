@@ -1,3 +1,4 @@
+
 //first.cpp Adding numbers using two nodes C++ version
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,57 +17,61 @@ int main(int argc,char* argv[])
   int numproc = MPI::COMM_WORLD.Get_size();
   std::cout << "This is id " << myid << " out of " << numproc << std::endl;
 
+  
+
+
+  if (myid == 0) { // master
+
   long a = 1664525;
   long m = 1;
   int pow = 32;
   long c = 1013904223;
   long n_pre = 12345;
+  long *n_start = new long[numproc];
+  *n_start = n_pre;
+  
+  //calculate m
   for (int i = 0; i < pow; i ++)
   {
     m = m * 2;
   }
-
-  //calculate C
-  long *cc = new long[numproc];
-  for(int i = 0; i < numproc; i ++)
-  {
-    long k = m/numproc * i;
-
-
-  }
-
-
-  long *p = new long[numproc];
-  //calculate A
-  for(int i = 0; i < numproc; i ++)
-  {
-    long k = m/numproc * i;
-    long ca = 1;
-    for(int i = 0; i < k; i ++)
+  long k = m / numproc;
+  
+  //calculate capital A and capital C
+  long ca = 1;
+  long cc = 0;  
+  for(int i = 0; i < k; i ++)
     {
-        ca = ca * a %m;
+        ca = ca * a % m;
+        long caim = 1 * c;  // c * pow(a,i) mod m
+        for(int j = 0; j < i; j ++)
+        {
+            caim = (caim * a) % m;
+        }
+        cc += caim %m;
     }
-    ca = ca % m;
+  cc %= m;
+  
+
+  //calculate the initial "n" for each processor
+  for(int i = 1; i < numproc; i ++)
+  {
+    long ni_pre =  *(n_start + i - 1);
+    *(n_start + i) = (ca * ni_pre % m + cc % m) % m;  // x(i+k) = (Ax(i) + C) mod m
+    // Master sends 'n_start' to slaves
+     MPI::COMM_WORLD.Send(n_start + i, 1, MPI::LONG, i,0);
+     MPI::COMM_WORLD.Send(k, 1, MPI::LONG, i,0);
+     MPI::COMM_WORLD.Send(a, 1, MPI::LONG, i,0);
+     MPI::COMM_WORLD.Send(c, 1, MPI::LONG, i,0);
+     MPI::COMM_WORLD.Send(m, 1, MPI::LONG, i,0);
   }
-  p[0] = n_pre;
-  p[1] =
-
-
-
-
-
-
-  if (myid == 0) {
-
-    // Get the number the user wants
-    int N = atoi(argv[1]);
-
-    // Master sends 'N' to slave
-    MPI::COMM_WORLD.Send(&N, 1, MPI::INT, 1,0);
-
+  
     // Partial result for node 0
     int sum0 = 0;
-    for(int i = 1; i <= N/2; i++){
+    for(int i = 1; i <= k; i++){
+      //n i+1 = (an i + c) mod m
+      
+      
       sum0 = sum0 + i;
     }
 
@@ -78,7 +83,7 @@ int main(int argc,char* argv[])
     std::cout << "The final result is " << result << std::endl;
   }
 
-  else if (myid == 1) {
+  else {  // slave
 
     // Slave waits to receive 'N' from master
     int N;
