@@ -5,7 +5,7 @@
 #include <iostream>
 #include <math.h>
 #include "mpi.h"
-
+using namespace std;
 //always use argc and argv, as mpirun will pass the appropriate parms.
 int main(int argc,char* argv[])
 {
@@ -20,14 +20,14 @@ int main(int argc,char* argv[])
   long m = 1;
 
   long c = 1013904223;
-  long n_seed = 12345;
+  long n_seed = 1234;
   long *n_start = new long[numproc];
    *n_start = n_seed;
   
   //calculate m
   m = pow(2, 32);
   long k = m / numproc;
-  cout << " 1" << endl
+  cout << " 1" << endl;
    //calculate capital A and capital C
   long ca128 = 2305417729;
   long cc128 = 2065617536;  
