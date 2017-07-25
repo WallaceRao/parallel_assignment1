@@ -14,15 +14,14 @@ int main(int argc,char* argv[])
   int myid = MPI::COMM_WORLD.Get_rank();
   int numproc = MPI::COMM_WORLD.Get_size();
   std::cout << "This is id " << myid << " out of " << numproc << std::endl;
-  if (myid == 0) { // master
-
+  
   long a = 1664525;
   long m = 1;
-  int pow = 32;
+
   long c = 1013904223;
   long n_seed = 12345;
   long *n_start = new long[numproc];
-  *n_start = n_seed;
+   *n_start = n_seed;
   
   //calculate m
   for (int i = 0; i < pow; i ++)
@@ -31,7 +30,7 @@ int main(int argc,char* argv[])
   }
   long k = m / numproc;
   
-  //calculate capital A and capital C
+   //calculate capital A and capital C
   long ca = 1;
   long cc = 0;  
   for(int i = 0; i < k; i ++)
@@ -46,19 +45,17 @@ int main(int argc,char* argv[])
     }
   cc %= m;
   
+  
+  if (myid == 0) { // master
+    //calculate the initial "n" for each processor
+    for(int i = 1; i < numproc; i ++)
+    {
+        long ni_pre =  *(n_start + i - 1);
+        *(n_start + i) = (ca * ni_pre % m + cc % m) % m;  // x(i+k) = (Ax(i) + C) mod m
+        // Master sends 'n_start', k, a, c, m to slaves
+        MPI::COMM_WORLD.Send(n_start + i, 1, MPI::LONG, i,0);
 
-  //calculate the initial "n" for each processor
-  for(int i = 1; i < numproc; i ++)
-  {
-    long ni_pre =  *(n_start + i - 1);
-    *(n_start + i) = (ca * ni_pre % m + cc % m) % m;  // x(i+k) = (Ax(i) + C) mod m
-    // Master sends 'n_start', k, a, c, m to slaves
-     MPI::COMM_WORLD.Send(n_start + i, 1, MPI::LONG, i,0);
-     MPI::COMM_WORLD.Send(k, 1, MPI::LONG, i,0);
-     MPI::COMM_WORLD.Send(a, 1, MPI::LONG, i,0);
-     MPI::COMM_WORLD.Send(c, 1, MPI::LONG, i,0);
-     MPI::COMM_WORLD.Send(m, 1, MPI::LONG, i,0);
-  }
+    }
   
     // Partial result for node 0
     long sum = 0; // sum of random intergers that locate in the circle
@@ -95,15 +92,9 @@ int main(int argc,char* argv[])
   }
 
   else {  // slave
-
     // Slave waits to receive 'N' from master
     long n_start;
-    long k, a, c, m;
     MPI::COMM_WORLD.Recv(&n_start, 1, MPI::LONG, 0, 0);
-    MPI::COMM_WORLD.Recv(&k, 1, MPI::LONG, 0, 0);
-    MPI::COMM_WORLD.Recv(&a, 1, MPI::LONG, 0, 0);
-    MPI::COMM_WORLD.Recv(&c, 1, MPI::LONG, 0, 0);
-    MPI::COMM_WORLD.Recv(&m, 1, MPI::LONG, 0, 0);
     long slaveSum = 0; // sum of random intergers that locate in the circle
     // process the first random
     long sqrtm = sqrt(m);
