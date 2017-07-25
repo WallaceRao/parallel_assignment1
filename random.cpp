@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <math.h>
 #include "mpi.h"
 
 //always use argc and argv, as mpirun will pass the appropriate parms.
@@ -24,36 +25,31 @@ int main(int argc,char* argv[])
    *n_start = n_seed;
   
   //calculate m
-  for (int i = 0; i < pow; i ++)
-  {
-    m = m * 2;
-  }
+  m = pow(2, 32);
   long k = m / numproc;
-  
+  cout << " 1" << endl
    //calculate capital A and capital C
-  long ca = 1;
-  long cc = 0;  
-  for(int i = 0; i < k; i ++)
-    {
-        ca = ca * a % m;
-        long caim = 1 * c;
-        for(int j = 0; j < i; j ++)
-        {
-            caim = (caim * a) % m;
-        }
-        cc += caim %m;
-    }
-  cc %= m;
+  long ca128 = 2305417729;
+  long cc128 = 2065617536;  
   
   
   if (myid == 0) { // master
     //calculate the initial "n" for each processor
+    cout << "2" << endl;
     for(int i = 1; i < numproc; i ++)
     {
+	long times = k;
         long ni_pre =  *(n_start + i - 1);
-        *(n_start + i) = (ca * ni_pre % m + cc % m) % m;  // x(i+k) = (Ax(i) + C) mod m
+	long ni = ni_pre;
+	while(times > 0)
+	{
+	  ni =  (ca128 * ni % m + cc128 % m) % m;
+	  times -= 128;
+	}
+        *(n_start + i) = ni;  // x(i+k) = (Ax(i) + C) mod m
         // Master sends 'n_start', k, a, c, m to slaves
-        MPI::COMM_WORLD.Send(n_start + i, 1, MPI::LONG, i,0);
+        MPI::COMM_WORLD.Send(&ni, 1, MPI::LONG, i,0);
+	cout << "ni is" << ni << " i is" << i << endl;
 
     }
   
@@ -114,7 +110,7 @@ int main(int argc,char* argv[])
       n_pre = n;
     }
     // Slave sends 'slaveSum' to master
-    MPI::COMM_WORLD.Send(&slaveSum, 1, MPI_INT, 0, 0);
+    MPI::COMM_WORLD.Send(&slaveSum, 1, MPI_LONG, 0, 0);
   }
   MPI::Finalize();
 }
