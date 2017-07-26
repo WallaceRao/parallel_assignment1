@@ -35,12 +35,11 @@ int main(int argc,char* argv[])
   
   if (myid == 0) { // master
     //calculate the initial "n" for each processor
-    cout << "2" << endl;
     for(int i = 1; i < numproc; i ++)
     {
 	long times = k;
         long ni_pre =  *(n_start + i - 1);
-	long ni = ni_pre;
+	unsigned long ni = ni_pre;
 	while(times > 0)
 	{
 	  ni =  (ca128 * ni % m + cc128 % m) % m;
@@ -49,7 +48,6 @@ int main(int argc,char* argv[])
         *(n_start + i) = ni;  // x(i+k) = (Ax(i) + C) mod m
         // Master sends 'n_start', k, a, c, m to slaves
         MPI::COMM_WORLD.Send(&ni, 1, MPI::LONG, i,0);
-	cout << "ni is" << ni << " i is" << i << endl;
 
     }
   
@@ -65,7 +63,7 @@ int main(int argc,char* argv[])
     // process the folloing randoms
     for(int i = 1; i <= k; i++){
       //n(i+1) = (an(i) + c) mod m
-      long n = (a * n_pre + c) % m;
+      unsigned long n = (a * n_pre + c) % m;
       float xi = (n / sqrtm -  sqrtm/2.0) / (sqrtm/2.0);
       float yi = (n % sqrtm -  sqrtm/2.0) / (sqrtm/2.0);
       if((xi*xi + yi*yi) <= 1)
@@ -89,7 +87,7 @@ int main(int argc,char* argv[])
 
   else {  // slave
     // Slave waits to receive 'N' from master
-    long n_start;
+    unsigned long n_start;
     MPI::COMM_WORLD.Recv(&n_start, 1, MPI::LONG, 0, 0);
     long slaveSum = 0; // sum of random intergers that locate in the circle
     // process the first random
@@ -100,9 +98,9 @@ int main(int argc,char* argv[])
         slaveSum++;
     long n_pre = n_start;
     // process the folloing randoms
-    for(int i = 1; i <= k; i++){
+    for(int i = 1; i < k; i++){
       //n(i+1) = (an(i) + c) mod m
-      long n = (a * n_pre + c) % m;
+      unsigned long n = (a * n_pre + c) % m;
       float xi = (n / sqrtm -  sqrtm/2.0) / (sqrtm/2.0);
       float yi = (n % sqrtm -  sqrtm/2.0) / (sqrtm/2.0);
       if((xi*xi + yi*yi) <= 1)
