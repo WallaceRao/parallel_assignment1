@@ -4,11 +4,15 @@
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
+#include<time.h>
 #include "mpi.h"
 using namespace std;
 //always use argc and argv, as mpirun will pass the appropriate parms.
 int main(int argc,char* argv[])
 {
+  clock_t start,finish;
+   double totaltime;
+   start=clock();
   MPI::Init(argc,argv);
 
   // What is my ID and how many processes are in this pool?
@@ -81,8 +85,6 @@ int main(int argc,char* argv[])
     }
         
     float PI = 4.0 * sum / m;
-
-    std::cout << "The final result is " << PI << std::endl;
   }
 
   else {  // slave
@@ -111,4 +113,8 @@ int main(int argc,char* argv[])
     MPI::COMM_WORLD.Send(&slaveSum, 1, MPI_LONG, 0, 0);
   }
   MPI::Finalize();
+  finish=clock();
+   totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
+   cout<<"the process "<< myid << " ran for " <<totaltime << "  seconds"<<endl;
+
 }
