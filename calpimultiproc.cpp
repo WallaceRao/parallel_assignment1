@@ -7,7 +7,21 @@
 #include "mpi.h"
 using namespace std;
 
-//always use argc and argv, as mpi run will pass the appropriate parms.
+
+/*
+ *                                SPECIFICATION
+ *  The programe aims to calculate PI value by implementing leapfrog method via PBS.
+ *
+ *  The processing workflow is
+ *  #1 The master generates the first random values for each slave process and send them out
+ *  #2 Master generate a sequence of random integers and convert them to (x,y) format, check if
+ *     the (x,y) locates in the circle or not.
+ *  #3 At the same time slave processes receive the first random value and do the same compution with the
+ *     master node. Count the number that how many random could locate in the circle, then send the result back to the master.
+ *  #4 The master adds all return values from slaves and sum them up with its own result, then calcute and output PI value.
+ */
+
+
 int main(int argc,char* argv[])
 {
    // Record the start time of this process
@@ -25,7 +39,7 @@ int main(int argc,char* argv[])
    long long m = pow(2, 32);
    long c = 1013904223;
    long long n_seed = 12345;
-   // n_start is an array saves the first randoms of each processor
+   // n_start is an array saves the first randoms for each processor
    long long* n_start = new long long[numproc];
    *n_start = n_seed;
    // numproc are used, each will generate k randoms.
