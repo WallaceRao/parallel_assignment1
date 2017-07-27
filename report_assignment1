@@ -1,0 +1,40 @@
+Student ID: 16093645
+Student Name: Yonghui Rao
+
+Q1: Give the results of your performance testing of your implementation
+of the parallel π calculation. Present your results in such a way that
+best demonstrates and tests Amdahl’s Law. Are the parallel speed-ups
+what you would expect?
+
+A: Table below is the perfomance testing result against my implementation when using different processes
+Process number          Time(seconds)         Speedup
+1                       267.14                1
+2                       134.24                1.99
+4                       67.64                 3.95
+8                       34.33                 7.78
+16                      17.69                 15.10
+As the random interger generation logic and leapfrog method are all processed Parellelly, Ws should be very small and Wp should be almost 1.
+According to Amdahl’s Law, 
+Speedup = 1 / ((1 - Wp) + Wp / s)
+Where Wp is the part of execution that could be Parelleled, here it is very near but smaller than 1.
+s is the processes count.
+Then Speedup is very near but smaller than s. However, as Wp can not be 1, the Speedup will be more smaller thn s when s is greater.
+According to the test result, the real values of speed-ups are what I expected.
+
+
+Q2: Measure the interprocess communication times. Provide an estimate
+of the amount of time your program will require if one implemented
+a method where only the master generates the random numbers and
+sends each to its appropriate slave.
+
+A: The total interprocess communication times of my implementation is 2 * (numProc - 1)
+Where numProc is the number of processes that are used in the task.
+When in one process environment, the total time used is 267.14 seconds, including both random generation and leapfrog method. Assume that each part consumes half og the total time, that is 133.57 seconds. Then if only the master generates the random numbers, Ws requals Wp equals 0.5.
+Table below is the time estimation.
+Process number          estimated Time(seconds)        
+1                       267.14                
+2                       200.36               
+4                       166.96               
+8                       150.27               
+16                      141.92               
+
