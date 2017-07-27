@@ -26,7 +26,7 @@ int main(int argc,char* argv[])
    long c = 1013904223;
    long long n_seed = 12345;
    // n_start is an array saves the first randoms of each processor
-   long long *n_start = new long long[numproc];
+   long long* n_start = new long long[numproc];
    *n_start = n_seed;
    // numproc are used, each will generate k randoms.
    long long k = m / numproc;
@@ -41,17 +41,17 @@ int main(int argc,char* argv[])
       //calculate the first random for each processor
       for(int i = 1; i < numproc; i ++)
       {
-         long times = k;
-         long long ni_pre =  *(n_start + i - 1);
-         long long ni = ni_pre;
+         unsigned long long times = k;
+         unsigned long long ni_pre =  *(n_start + i - 1);
+         unsigned long long ni = ni_pre;
          while(times > 0)
          {
             ni =  (ca128 * ni % m + cc128 % m) % m;
             times -= 128;
          }
          *(n_start + i) = ni;
-        // Master sends the start random to specific processor
-         MPI::COMM_WORLD.Send(&ni, 1, MPI::LONG, i,0);
+         // Master sends the start random to specific processor
+         MPI::COMM_WORLD.Send(&ni, 1, MPI_LONG_LONG_INT, i,0);
       }
       // Partial result for node 0
       long long sum = 0; // sum of random intergers that locate in the circle
@@ -83,7 +83,7 @@ int main(int argc,char* argv[])
       cout << "The final result of PI is "<< PI << endl;
    } else {  // slave
       // Slave waits to receive the start random from master
-      long long n_start;
+      unsigned long long n_start;
       MPI::COMM_WORLD.Recv(&n_start, 1, MPI::LONG, 0, 0);
       long slaveSum = 0; // sum of random intergers that locate in the circle
       // process the first random
@@ -104,9 +104,13 @@ int main(int argc,char* argv[])
       // Slave sends 'slaveSum' to master
       MPI::COMM_WORLD.Send(&slaveSum, 1, MPI_LONG, 0, 0);
    }
-
+   delete[] n_start;
    MPI::Finalize();
-   finish=clock();
-   totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
-   cout<<"the process "<< myid << " ran for " <<totaltime << "  seconds"<<endl;
+   // output the time consumed.
+   if(myid == 0)
+   {
+      finish=clock();
+      totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
+      cout<<"the master ran for " <<totaltime << " seconds"<<endl;
+   }
 }
