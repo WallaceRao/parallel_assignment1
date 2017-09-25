@@ -12,6 +12,7 @@
 
 using namespace std;
 
+// !!! Modify this file path to your own directory when compile. 
 char constants_file[] = "/home/s16093645/assignment1_git/parallel_assignment1/jumpconstants.dat";
 
 map<int, long long> map_A;
@@ -81,7 +82,7 @@ int main(int argc,char* argv[])
    {
       //calculate the first random for each processor
       cout << "There are totally "<< numproc << " processors." << endl;
-      readConstants();
+      readConstants(); // Master read the constants file
       // Pick correct A and C from map_A and map_C
       long ca = map_A[numproc];
       long cc = map_C[numproc];
