@@ -1,0 +1,6 @@
+Read from /var/spool/torque/aux//15893.mighty.local
+This job runs on these processors:
+compute-0-1 compute-0-1 compute-0-1 compute-0-1 compute-0-1 compute-0-1 compute-0-1 compute-0-1
+There are totally 8 processors.
+The final result of PI is 3.14157
+the master ran for 33.49 seconds
