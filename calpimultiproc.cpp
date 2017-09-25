@@ -3,10 +3,19 @@
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
-#include<time.h>
+#include <time.h>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <map>
 #include "mpi.h"
+
 using namespace std;
 
+char constants_file[] = "/home/s16093645/assignment1_git/parallel_assignment1/jumpconstants.dat";
+
+map<int, long long> map_A;
+map<int, long long> map_C;
 
 /*
  *                                SPECIFICATION
@@ -21,6 +30,27 @@ using namespace std;
  *  #4 The master adds all return values from slaves and sum them up with its own result, then calcute and output PI value.
  */
 
+
+void readConstants()
+{
+   ifstream infile(constants_file);
+   if(!infile)
+      cout << "error: infile is null, file name: "<< constants_file << endl;
+   string line;
+   while (std::getline(infile, line))
+   {
+      std::istringstream iss(line);
+      int k;
+      long long a, c, flag;
+      if (!(iss >> k >> a >> c >> flag))
+      {  
+         cout << "read constants file error" << endl;
+         break;
+      } // error
+      map_A[k] = a;
+      map_C[k] = c; 
+   }    
+}
 
 int main(int argc,char* argv[])
 {
@@ -44,25 +74,22 @@ int main(int argc,char* argv[])
    *n_start = n_seed;
    // numproc are used, each will generate k randoms.
    long long k = m / numproc;
-   // "ca128" and "cc128" are used when calculate n(i+128)
-   long ca128 = 2305417729;
-   long cc128 = 2065617536;
    // "sqrtm" is used to convert the random to (x,y) value
    long sqrtm = sqrt(m);
 
    if (myid == 0) // master
    {
       //calculate the first random for each processor
+      cout << "There are totally "<< numproc << " processors." << endl;
+      readConstants();
+      // Pick correct A and C from map_A and map_C
+      long ca = map_A[numproc];
+      long cc = map_C[numproc];
       for(int i = 1; i < numproc; i ++)
       {
-         unsigned long long times = k;
          unsigned long long ni_pre =  *(n_start + i - 1);
          unsigned long long ni = ni_pre;
-         while(times > 0)
-         {
-            ni =  (ca128 * ni % m + cc128 % m) % m;
-            times -= 128;
-         }
+         ni =  (ca * ni % m + cc % m) % m;
          *(n_start + i) = ni;
          // Master sends the start random to specific processor
          MPI::COMM_WORLD.Send(&ni, 1, MPI_LONG_LONG_INT, i,0);

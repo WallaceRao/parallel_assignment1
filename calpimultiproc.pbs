@@ -1,4 +1,4 @@
-#PBS -j oe -o calpimultiproc.stdout -l nodes=1:ppn=2 -q pp
+#PBS -j oe -o calpimultiproc.stdout -l nodes=1:ppn=8 -q pp
 
 echo Read from $PBS_NODEFILE
 
@@ -6,5 +6,5 @@ echo This job runs on these processors:
 echo `cat $PBS_NODEFILE`
 
 # Make the appropriate changes to this line
-mpiexec -machinefile $PBS_NODEFILE -np 1 /home/s16093645/assignment1/parallel_assignment1/calpimultiproc
+mpiexec -machinefile $PBS_NODEFILE -np 8 /home/s16093645/assignment1_git/parallel_assignment1/calpimultiproc
 
